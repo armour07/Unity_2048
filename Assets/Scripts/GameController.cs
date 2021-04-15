@@ -43,7 +43,10 @@ public class GameController : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
 
 	// Use this for initialization
 	void Start () {
-        for (int i = 0; i < GameSize.x; i++)
+#if UNITY_STANDALONE
+		Screen.SetResolution(750, 1334, false);
+#endif
+		for (int i = 0; i < GameSize.x; i++)
         {
             for (int j = 0; j < GameSize.y; j++)
             {
