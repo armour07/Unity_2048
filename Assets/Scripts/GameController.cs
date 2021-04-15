@@ -11,6 +11,8 @@ public class GameController : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
 	public Grid[,] Grids;
 	public GameObject GridGo;
 	public RectTransform GamePanel;
+	[SerializeField]
+	public List<Histroy> Histroys; 
 	private int score;
 	public int Score {
 		get {
@@ -24,13 +26,20 @@ public class GameController : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
 	}
 	public Text TxtScore;
 
+	[System.Serializable]
+	public struct Histroy
+    {
+		public int score;
+		public List<int> nums;
+    }
 
 	void Awake()
     {
 		Grids = new Grid[(int)GameSize.x, (int)GameSize.y];
 		GamePanel.sizeDelta = MapSize;
 		GamePanel.anchoredPosition = -MapSize / 2;
-    }
+		Histroys = new List<Histroy>();
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -87,6 +96,49 @@ public class GameController : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
         }
 		var pos = Random.Range(0, zero_grid_list.Count);
 		zero_grid_list[pos].Num = RangeNums[Random.Range(0, RangeNums.Length)];
+	}
+
+	void SaveHistroy()
+    {
+		var list = new List<int>();
+		for (int i = 0; i < GameSize.x; i++)
+		{
+			for (int j = 0; j < GameSize.y; j++)
+			{
+				var grid = Grids[i, j];
+				list.Add(grid.Num);
+			}
+		}
+		var histroy = new Histroy();
+		histroy.score = Score;
+		histroy.nums = list;
+		Histroys.Insert(0, histroy);
+		if(Histroys.Count >= 10)
+        {
+			print("记录大于10，删掉第10个");
+			Histroys.RemoveAt(9);
+        }
+	}
+
+	public void LoadHistroy()
+	{
+		if (Histroys.Count == 0)
+        {
+			print("没有历史");
+			return;
+        }
+		var histroy = Histroys[0];
+		Histroys.RemoveAt(0);
+		Score = histroy.score;
+		for (int i = 0; i < GameSize.x; i++)
+		{
+			for (int j = 0; j < GameSize.y; j++)
+			{
+				var grid = Grids[i, j];
+				var idx = i * (int)GameSize.x + j;
+				grid.Num = histroy.nums[idx];
+			}
+		}
 	}
 
 	bool CheckOver()
@@ -362,9 +414,10 @@ public class GameController : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
         {
 			return;
         }
-		if(Mathf.Abs(pos.x) > Mathf.Abs(pos.y))
+		SaveHistroy();
+		if (Mathf.Abs(pos.x) > Mathf.Abs(pos.y))
         {
-			if(pos.x > 0)
+			if (pos.x > 0)
             {
 				RightDrag();
             }
